@@ -12,7 +12,7 @@ import (
 func main() {
 	var packageManagers = GetPackageManager()
 
-	fzf := exec.Command("fzf", "-m")
+	fzf := exec.Command("fzf", "-m", "--tac")
 	stdin, err := fzf.StdinPipe()
 	if err != nil {
 		panic(err)
@@ -77,7 +77,7 @@ func Uninstall(pkg string, packageManagers []PackageManager) error {
 	var submatches = packageRE.FindStringSubmatch(pkg)
 	for _, packageManager := range packageManagers {
 		if packageManager.Name() == submatches[2] {
-			return packageManager.Uninstall(pkg)
+			return packageManager.Uninstall(submatches[1])
 		}
 	}
 
