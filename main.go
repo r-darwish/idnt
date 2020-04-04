@@ -86,7 +86,7 @@ func Uninstall(pkg string, packageManagers []PackageManager) error {
 
 func GetPackageManager() []PackageManager {
 	if runtime.GOOS == "windows" {
-		return []PackageManager{Scoop{}}
+		return []PackageManager{Scoop{}, Chocolatey{}}
 	}
 
 	panic("Unsupported operating system")
