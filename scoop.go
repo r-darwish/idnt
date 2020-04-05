@@ -4,10 +4,16 @@ import (
 	"github.com/thoas/go-funk"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
 type Scoop struct {
+}
+
+func (s Scoop) Exists() bool {
+	_, err := exec.LookPath("scoop")
+	return runtime.GOOS == "windows" && err == nil
 }
 
 func (s Scoop) Name() string {

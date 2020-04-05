@@ -4,10 +4,16 @@ import (
 	"github.com/thoas/go-funk"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
 type Chocolatey struct {
+}
+
+func (s Chocolatey) Exists() bool {
+	_, err := exec.LookPath("choco")
+	return runtime.GOOS == "windows" && err == nil
 }
 
 func (s Chocolatey) Name() string {

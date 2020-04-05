@@ -5,13 +5,10 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strings"
 )
 
 func main() {
-	var packageManagers = GetPackageManager()
-
 	fzf := exec.Command("fzf", "-m", "--tac")
 	stdin, err := fzf.StdinPipe()
 	if err != nil {
@@ -28,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	for _, packageManager := range packageManagers {
+	for _, packageManager := range PackageManagers {
 		packages, err := packageManager.Packages()
 		if err != nil {
 			fmt.Printf("Error in %s: %s\n", packageManager, err)
@@ -62,7 +59,7 @@ func main() {
 			continue
 		}
 
-		err = Uninstall(pkg, packageManagers)
+		err = Uninstall(pkg)
 		if err != nil {
 			fmt.Printf("Error uninstalling %s: %s", pkg, err)
 		}
@@ -71,23 +68,15 @@ func main() {
 
 var packageRE = regexp.MustCompile("(.*) \\((\\w+)\\)")
 
-func Uninstall(pkg string, packageManagers []PackageManager) error {
+func Uninstall(pkg string) error {
 	fmt.Printf("Uninstalling %s\n", pkg)
 
 	var submatches = packageRE.FindStringSubmatch(pkg)
-	for _, packageManager := range packageManagers {
+	for _, packageManager := range PackageManagers {
 		if packageManager.Name() == submatches[2] {
 			return packageManager.Uninstall(submatches[1])
 		}
 	}
 
 	panic("Unknown package manager")
-}
-
-func GetPackageManager() []PackageManager {
-	if runtime.GOOS == "windows" {
-		return []PackageManager{Scoop{}, Chocolatey{}}
-	}
-
-	panic("Unsupported operating system")
 }
