@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"idnt/src"
+	"github.com/r-darwish/idnt/src"
 	"io/ioutil"
 	"os"
 	"os/exec"

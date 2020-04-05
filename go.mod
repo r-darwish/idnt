@@ -1,4 +1,4 @@
-module idnt
+module github.com/r-darwish/idnt
 
 go 1.14
 
