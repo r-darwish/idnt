@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/r-darwish/idnt/src"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -15,17 +16,17 @@ func main() {
 	fzf.Stderr = os.Stderr
 	stdin, err := fzf.StdinPipe()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	stdout, err := fzf.StdoutPipe()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	err = fzf.Start()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	for _, packageManager := range src.PackageManagers {
@@ -37,24 +38,24 @@ func main() {
 		for _, pkg := range packages {
 			_, err := fmt.Fprintf(stdin, "%s (%s)\n", pkg, packageManager.Name())
 			if err != nil {
-				panic(err)
+				log.Fatalf("Error running fzf: %s", err)
 			}
 		}
 	}
 
 	err = stdin.Close()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	out, err := ioutil.ReadAll(stdout)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	err = fzf.Wait()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error running fzf: %s", err)
 	}
 
 	for _, pkg := range strings.Split(string(out), "\n") {
