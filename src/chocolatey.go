@@ -1,4 +1,4 @@
-package main
+package src
 
 import (
 	"github.com/thoas/go-funk"

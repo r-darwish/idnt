@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"idnt/src"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -27,7 +28,7 @@ func main() {
 		panic(err)
 	}
 
-	for _, packageManager := range PackageManagers {
+	for _, packageManager := range src.PackageManagers {
 		packages, err := packageManager.Packages()
 		if err != nil {
 			fmt.Printf("Error in %s: %s\n", packageManager, err)
@@ -74,7 +75,7 @@ func Uninstall(pkg string) error {
 	fmt.Printf("Uninstalling %s\n", pkg)
 
 	var submatches = packageRE.FindStringSubmatch(pkg)
-	for _, packageManager := range PackageManagers {
+	for _, packageManager := range src.PackageManagers {
 		if packageManager.Name() == submatches[2] {
 			return packageManager.Uninstall(submatches[1])
 		}
