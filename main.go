@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 func main() {
 	fzf := exec.Command("fzf", "-m", "--layout=reverse-list", "--prompt=Select applications to uninstall:")
+	fzf.Stderr = os.Stderr
 	stdin, err := fzf.StdinPipe()
 	if err != nil {
 		panic(err)
