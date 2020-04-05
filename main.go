@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fzf := exec.Command("fzf", "-m", "--tac")
+	fzf := exec.Command("fzf", "-m", "--layout=reverse-list", "--prompt=Select applications to uninstall:")
 	stdin, err := fzf.StdinPipe()
 	if err != nil {
 		panic(err)
