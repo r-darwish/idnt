@@ -91,9 +91,13 @@ func (a *AppWiz) getApp(keyName string) (Application, error) {
 
 func (a AppWiz) RemoveApplication(application *Application) error {
 	extendedInfo := application.ExtendedInfo.(*AppWizExtendedInfo)
-	commandLine, err := shlex.Split(strings.Replace(extendedInfo.uninstallString, "\\", "\\\\", -1))
-	if err != nil {
-		return err
+	commandLine := []string{extendedInfo.uninstallString}
+	var err error
+	if !strings.HasPrefix(commandLine[0], "C:\\Program Files") {
+		commandLine, err = shlex.Split(strings.Replace(extendedInfo.uninstallString, "\\", "\\\\", -1))
+		if err != nil {
+			return err
+		}
 	}
 	command := exec.Command(commandLine[0], commandLine[1:]...)
 	return command.Run()
