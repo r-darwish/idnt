@@ -34,7 +34,7 @@ func main() {
 		return
 	}
 
-	p, _ := pterm.DefaultProgressbar.WithTotal(len(allApps)).WithTitle("Removing Applications").Start()
+	p, _ := pterm.DefaultProgressbar.WithTotal(len(selections)).WithTitle("Removing Applications").Start()
 
 	for _, selection := range selections {
 		app := allApps[selection]
