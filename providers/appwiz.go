@@ -10,9 +10,9 @@ import (
 type AppWiz struct {
 }
 
-func (a *AppWiz) getApplications(registryKey string) ([]Application, error) {
+func (a *AppWiz) getApplications(rootKey registry.Key, registryKey string) ([]Application, error) {
 	key, err := registry.OpenKey(
-		registry.LOCAL_MACHINE,
+		rootKey,
 		registryKey,
 		registry.ENUMERATE_SUB_KEYS)
 	if err != nil {
@@ -30,7 +30,7 @@ func (a *AppWiz) getApplications(registryKey string) ([]Application, error) {
 	}
 
 	for _, subKey := range keys {
-		app, err := a.getApp(registryKey + "\\" + subKey)
+		app, err := a.getApp(rootKey, registryKey+"\\"+subKey)
 		if err == nil {
 			result = append(result, app)
 		}
@@ -40,29 +40,39 @@ func (a *AppWiz) getApplications(registryKey string) ([]Application, error) {
 }
 
 func (a *AppWiz) GetApplications() ([]Application, error) {
-	mainApplications, err := a.getApplications("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
+	var result []Application
+
+	mainApplications, err := a.getApplications(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
 	if err != nil {
 		return nil, err
 	}
+	result = append(result, mainApplications...)
 
-	wow64Applications, err := a.getApplications("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
+	userApplications, err := a.getApplications(registry.CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
 	if err != nil {
 		return nil, err
 	}
+	result = append(result, userApplications...)
 
-	return append(mainApplications, wow64Applications...), nil
+	wow64Applications, err := a.getApplications(registry.LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
+	if err != nil {
+		return nil, err
+	}
+	result = append(result, wow64Applications...)
+
+	return result, nil
 }
 
 type AppWizExtendedInfo struct {
 	uninstallString string
 }
 
-func (a *AppWiz) getApp(keyName string) (Application, error) {
+func (a *AppWiz) getApp(rootKey registry.Key, keyName string) (Application, error) {
 	var result Application
 	result.Provider = a
 
 	key, err := registry.OpenKey(
-		registry.LOCAL_MACHINE,
+		rootKey,
 		keyName,
 		registry.QUERY_VALUE)
 	if err != nil {
