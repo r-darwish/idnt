@@ -29,23 +29,24 @@ func main() {
 		func(i int) string {
 			return allApps[i].Name
 		},
+		fuzzyfinder.WithPromptString("Select applications to remove > "),
 	)
 	if err != nil {
 		return
 	}
 
-	p, _ := pterm.DefaultProgressbar.WithTotal(len(selections)).WithTitle("Removing Applications").Start()
+	p, _ := pterm.DefaultProgressbar.WithTotal(len(selections)).WithTitle("Removing Applications").WithRemoveWhenDone(true).Start()
 
 	for _, selection := range selections {
 		app := allApps[selection]
 		name := app.Name
 		p.UpdateTitle("Removing " + name)
 		err := app.Provider.RemoveApplication(&app)
-		p.Increment()
 		if err != nil {
 			pterm.Error.Printfln("Error removing %s: %s", name, err)
 		} else {
 			pterm.Success.Printfln("Removed %s", name)
 		}
+		p.Increment()
 	}
 }
