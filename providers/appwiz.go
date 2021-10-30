@@ -1,0 +1,100 @@
+package providers
+
+import (
+	"github.com/google/shlex"
+	"golang.org/x/sys/windows/registry"
+	"os/exec"
+	"strings"
+)
+
+type AppWiz struct {
+}
+
+func (a *AppWiz) getApplications(registryKey string) ([]Application, error) {
+	key, err := registry.OpenKey(
+		registry.LOCAL_MACHINE,
+		registryKey,
+		registry.ENUMERATE_SUB_KEYS)
+	if err != nil {
+		return nil, err
+	}
+	defer func(key registry.Key) {
+		_ = key.Close()
+	}(key)
+
+	var result []Application
+
+	keys, err := key.ReadSubKeyNames(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, subKey := range keys {
+		app, err := a.getApp(registryKey + "\\" + subKey)
+		if err == nil {
+			result = append(result, app)
+		}
+	}
+
+	return result, nil
+}
+
+func (a *AppWiz) GetApplications() ([]Application, error) {
+	mainApplications, err := a.getApplications("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
+	if err != nil {
+		return nil, err
+	}
+
+	wow64Applications, err := a.getApplications("SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall")
+	if err != nil {
+		return nil, err
+	}
+
+	return append(mainApplications, wow64Applications...), nil
+}
+
+type AppWizExtendedInfo struct {
+	uninstallString string
+}
+
+func (a *AppWiz) getApp(keyName string) (Application, error) {
+	var result Application
+	result.Provider = a
+
+	key, err := registry.OpenKey(
+		registry.LOCAL_MACHINE,
+		keyName,
+		registry.QUERY_VALUE)
+	if err != nil {
+		return result, err
+	}
+	defer func(key registry.Key) {
+		_ = key.Close()
+	}(key)
+
+	name, _, err := key.GetStringValue("DisplayName")
+	if err != nil {
+		return result, err
+	}
+	result.Name = name
+
+	uninstallString, _, err := key.GetStringValue("UninstallString")
+	if err != nil {
+		return result, err
+	}
+
+	extendedInfo := AppWizExtendedInfo{uninstallString: uninstallString}
+	result.ExtendedInfo = &extendedInfo
+
+	return result, nil
+}
+
+func (a AppWiz) RemoveApplication(application *Application) error {
+	extendedInfo := application.ExtendedInfo.(*AppWizExtendedInfo)
+	commandLine, err := shlex.Split(strings.Replace(extendedInfo.uninstallString, "\\", "\\\\", -1))
+	if err != nil {
+		return err
+	}
+	command := exec.Command(commandLine[0], commandLine[1:]...)
+	return command.Run()
+}
