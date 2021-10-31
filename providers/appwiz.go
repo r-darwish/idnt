@@ -99,6 +99,18 @@ func (a *AppWiz) getApp(rootKey registry.Key, keyName string) (Application, erro
 		return result, err
 	}
 
+	result.ExtraInfo = make(map[string]string)
+	storeValue := func(field string, valueKey string) {
+		value, _, err2 := key.GetStringValue(valueKey)
+		if err2 == nil && value != "" {
+			result.ExtraInfo[field] = value
+		}
+	}
+
+	storeValue("URL", "URLInfoAbout")
+	storeValue("Publisher", "Publisher")
+	storeValue("Version", "DisplayVersion")
+
 	extendedInfo := AppWizExtendedInfo{uninstallString: uninstallString}
 	result.ExtendedInfo = &extendedInfo
 

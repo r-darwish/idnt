@@ -4,6 +4,7 @@ type Application struct {
 	Name         string
 	Provider     Provider
 	ExtendedInfo interface{}
+	ExtraInfo    map[string]string
 }
 
 type Provider interface {

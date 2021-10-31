@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/pterm/pterm"
 	"github.com/r-darwish/idnt/providers"
@@ -38,6 +39,14 @@ func main() {
 			return allApps[i].Name
 		},
 		fuzzyfinder.WithPromptString("Select applications to remove > "),
+		fuzzyfinder.WithPreviewWindow(func(i, width, height int) string {
+			app := allApps[i]
+			result := fmt.Sprintf("%s\n\nProvider: %s", app.Name, app.Provider.GetName())
+			for field, value := range app.ExtraInfo {
+				result += fmt.Sprintf("\n%s: %s", field, value)
+			}
+			return result
+		}),
 	)
 	if err != nil {
 		return
