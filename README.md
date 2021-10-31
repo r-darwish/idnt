@@ -16,4 +16,4 @@ applications that you with to remove with `TAB` and then hit `Enter` to remove t
 
 ## Supported operating systems and application providers
 
-Only Windows at the moment. macOS support will follow soon.
+macOS and Windows. Linux support will follow soon.
