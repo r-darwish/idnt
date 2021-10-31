@@ -9,7 +9,9 @@ import (
 )
 
 func main() {
-	providersList := []providers.Provider{&providers.AppWiz{}}
+	var providersList []providers.Provider
+
+	providersList = append(providersList, providers.GetOsSpecificProviders()...)
 	var allApps []providers.Application
 
 	for _, provider := range providersList {
