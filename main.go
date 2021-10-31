@@ -45,7 +45,7 @@ func main() {
 		p.UpdateTitle("Removing " + name)
 		err := app.Provider.RemoveApplication(&app)
 		if err != nil {
-			pterm.Error.Printfln("Error removing %s: %s", name, err)
+			pterm.Error.Printfln("Removing %s: %s", name, err)
 		} else {
 			pterm.Success.Printfln("Removed %s", name)
 		}
