@@ -11,6 +11,10 @@ import (
 type Brew struct {
 }
 
+func (b *Brew) GetName() string {
+	return "Brew"
+}
+
 func (b *Brew) GetApplications() ([]Application, error) {
 	command := exec.Command("brew", "leaves")
 	output, err := command.StdoutPipe()

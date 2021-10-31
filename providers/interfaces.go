@@ -9,4 +9,5 @@ type Application struct {
 type Provider interface {
 	GetApplications() ([]Application, error)
 	RemoveApplication(application *Application) error
+	GetName() string
 }

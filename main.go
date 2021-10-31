@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).Start("Collecting installed applications")
 	var providersList []providers.Provider
 
 	providersList = append(providersList, providers.GetOsSpecificProviders()...)
@@ -17,6 +18,7 @@ func main() {
 	for _, provider := range providersList {
 		providerApps, err := provider.GetApplications()
 		if err != nil {
+			pterm.Warning.Printfln("Error collecting %s: %s", provider.GetName(), err)
 			continue
 		}
 		allApps = append(allApps, providerApps...)
@@ -25,6 +27,10 @@ func main() {
 	sort.Slice(allApps, func(i, j int) bool {
 		return strings.ToLower(allApps[i].Name) > strings.ToLower(allApps[j].Name)
 	})
+
+	if spinner != nil {
+		_ = spinner.Stop()
+	}
 
 	selections, err := fuzzyfinder.FindMulti(
 		allApps,

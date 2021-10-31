@@ -12,6 +12,10 @@ import (
 type AppWiz struct {
 }
 
+func (a *AppWiz) GetName() string {
+	return "Application Wizard"
+}
+
 func (a *AppWiz) getApplications(rootKey registry.Key, registryKey string) ([]Application, error) {
 	key, err := registry.OpenKey(
 		rootKey,
