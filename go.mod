@@ -3,6 +3,7 @@ module github.com/r-darwish/idnt
 go 1.17
 
 require (
+	github.com/aaronjan/hunch v1.1.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/ktr0731/go-fuzzyfinder v0.5.0
 	github.com/pterm/pterm v0.12.33
