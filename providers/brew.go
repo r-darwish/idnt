@@ -13,12 +13,44 @@ import (
 type Brew struct {
 }
 
+type BrewApp struct {
+	cask bool
+}
+
 func (b *Brew) GetName() string {
 	return "Brew"
 }
 
 func (b *Brew) GetApplications() ([]Application, error) {
-	command := exec.Command("brew", "leaves")
+	ctx := context.Background()
+	results, err := hunch.All(ctx, func(ctx context.Context) (interface{}, error) {
+		return b.getApps(true)
+	},
+		func(ctx context.Context) (interface{}, error) {
+
+			return b.getApps(false)
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	var allApps []Application
+	for _, result := range results {
+		appGroup := result.([]Application)
+		allApps = append(allApps, appGroup...)
+	}
+
+	return allApps, nil
+}
+
+func (b *Brew) getApps(cask bool) ([]Application, error) {
+	var command *exec.Cmd
+	if cask {
+		command = exec.Command("brew", "list", "--cask")
+	} else {
+		command = exec.Command("brew", "leaves")
+	}
+
 	output, err := command.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -40,7 +72,7 @@ func (b *Brew) GetApplications() ([]Application, error) {
 	for scanner.Scan() {
 		text := scanner.Text()
 		funcs = append(funcs, func(ctx context.Context) (interface{}, error) {
-			return b.getBrewInfo(text)
+			return b.getBrewInfo(text, cask)
 		})
 	}
 
@@ -56,14 +88,22 @@ func (b *Brew) GetApplications() ([]Application, error) {
 	return result, nil
 }
 
-func (b *Brew) getBrewInfo(packageName string) (interface{}, error) {
-	command := exec.Command("brew", "info", packageName)
+func (b *Brew) getBrewInfo(packageName string, cask bool) (interface{}, error) {
+	var command *exec.Cmd
+
+	if cask {
+		command = exec.Command("brew", "info", "--cask", packageName)
+	} else {
+		command = exec.Command("brew", "info", packageName)
+	}
+
 	output, err := command.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
 	defer func(output io.ReadCloser) {
 		_ = output.Close()
+		_ = command.Wait()
 	}(output)
 
 	err = command.Start()
@@ -75,23 +115,46 @@ func (b *Brew) getBrewInfo(packageName string) (interface{}, error) {
 	scanner.Split(bufio.ScanLines)
 
 	extraInfo := map[string]string{}
-	scanner.Scan()
-	extraInfo["Package"] = scanner.Text()
-	scanner.Scan()
-	extraInfo["Description"] = scanner.Text()
-	scanner.Scan()
-	extraInfo["URL"] = scanner.Text()
+
+	if cask {
+		scanner.Scan()
+		extraInfo["Package"] = scanner.Text()
+		scanner.Scan()
+		extraInfo["URL"] = scanner.Text()
+		for scanner.Text() != "==> Description" {
+			scanner.Scan()
+		}
+		scanner.Scan()
+		extraInfo["Description"] = scanner.Text()
+		extraInfo["Type"] = "Cask"
+	} else {
+		scanner.Scan()
+		extraInfo["Package"] = scanner.Text()
+		scanner.Scan()
+		extraInfo["Description"] = scanner.Text()
+		scanner.Scan()
+		extraInfo["URL"] = scanner.Text()
+		extraInfo["Type"] = "Formula"
+	}
 
 	return Application{
 		Name:         packageName,
 		Provider:     b,
-		ExtendedInfo: nil,
+		ExtendedInfo: BrewApp{cask: cask},
 		ExtraInfo:    extraInfo,
 	}, nil
 }
 
 func (b *Brew) RemoveApplication(application *Application) error {
-	command := exec.Command("brew", "rmtree", "--quiet", application.Name)
+	var command *exec.Cmd
+	brewApp := application.ExtendedInfo.(BrewApp)
+
+	if brewApp.cask {
+		command = exec.Command("brew", "uninstall", "--cask", application.Name)
+	} else {
+		command = exec.Command("brew", "rmtree", "--quiet", application.Name)
+	}
+
 	pipe, err := command.StdinPipe()
 	if err != nil {
 		return err
