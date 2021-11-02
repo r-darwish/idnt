@@ -91,6 +91,14 @@ func (b *Brew) getBrewInfo(packageName string) (interface{}, error) {
 }
 
 func (b *Brew) RemoveApplication(application *Application) error {
-	command := exec.Command("brew", "uninstall", application.Name)
+	command := exec.Command("brew", "rmtree", "--quiet", application.Name)
+	pipe, err := command.StdinPipe()
+	if err != nil {
+		return err
+	}
+	defer func(pipe io.WriteCloser) {
+		_ = pipe.Close()
+	}(pipe)
+	_, err = io.WriteString(pipe, "y\n")
 	return command.Run()
 }

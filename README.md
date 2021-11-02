@@ -17,3 +17,5 @@ applications that you with to remove with `TAB` and then hit `Enter` to remove t
 ## Supported operating systems and application providers
 
 macOS and Windows. Linux support will follow soon.
+
+macOS user need to install Brew [rmtree](https://github.com/beeftornado/homebrew-rmtree).
