@@ -40,6 +40,10 @@ func main() {
 		},
 		fuzzyfinder.WithPromptString("Select applications to remove > "),
 		fuzzyfinder.WithPreviewWindow(func(i, width, height int) string {
+			if i == -1 {
+				return ""
+			}
+
 			app := allApps[i]
 			result := fmt.Sprintf("%s\n\nProvider: %s", app.Name, app.Provider.GetName())
 			for field, value := range app.ExtraInfo {
