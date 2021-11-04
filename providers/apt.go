@@ -18,7 +18,6 @@ type Apt struct {
 
 func (p Apt) GetApplications() ([]Application, error) {
 	var result []Application
-	const fieldNameLength = 18
 	if _, err := os.Stat("/usr/bin/apt"); errors.Is(err, os.ErrNotExist) {
 		return result, nil
 	}
