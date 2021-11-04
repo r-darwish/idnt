@@ -18,7 +18,7 @@ applications that you with to remove with `TAB` and then hit `Enter` to remove t
 
 macOS, Windows and Linux (APT and Pacman).
 
-macOS user need to install Brew [rmtree](https://github.com/beeftornado/homebrew-rmtree).
+macOS users need to install Brew [rmtree](https://github.com/beeftornado/homebrew-rmtree).
 
 ### A warning for Linux users
 
