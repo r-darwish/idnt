@@ -24,4 +24,4 @@ macOS user need to install Brew [rmtree](https://github.com/beeftornado/homebrew
 
 While you probably can't break your system no matter which brew package you uninstall in macOS, it's easy to uninstall
 the wrong package in Linux and make your system unbootable. This application does not prompt for any confirmation before
-the selected packages, so use it with caution.
+uninstalling the selected packages, so use it with caution.
