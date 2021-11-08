@@ -3,5 +3,5 @@
 package providers
 
 func GetOsSpecificProviders() []Provider {
-	return []Provider{&AppWiz{}}
+	return []Provider{&AppWiz{}, &Choco{}}
 }
