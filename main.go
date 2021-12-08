@@ -13,6 +13,7 @@ func main() {
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).Start("Collecting installed applications")
 	var providersList []providers.Provider
 
+	providersList = append(providersList, providers.Powershell{})
 	providersList = append(providersList, providers.GetOsSpecificProviders()...)
 	var allApps []providers.Application
 
