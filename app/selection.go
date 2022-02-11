@@ -6,15 +6,10 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/pkg/browser"
 	"github.com/r-darwish/idnt/providers"
 	"sort"
 	"strings"
-)
-
-var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
 )
 
 type listKeyMap struct {
@@ -162,6 +157,25 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, cmd
 				}
 
+			}
+		case key.Matches(msg, m.keys.execute):
+			var appsToRemove []providers.Application
+			for _, item := range m.list.Items() {
+				item := item.(*AppItem)
+				if item.marked {
+					appsToRemove = append(appsToRemove, item.app)
+				}
+			}
+
+			if len(appsToRemove) == 0 {
+				if item := m.list.SelectedItem(); item != nil {
+					item := item.(*AppItem)
+					appsToRemove = append(appsToRemove, item.app)
+				}
+			}
+
+			if len(appsToRemove) > 0 {
+				return newRemovalModel(appsToRemove), nil
 			}
 		}
 	}
