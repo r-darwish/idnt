@@ -132,6 +132,7 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.list.Select(index + 1)
 				}
 			}
+
 		case key.Matches(msg, m.keys.gotoUrl):
 			selectedItem := m.list.SelectedItem()
 			if selectedItem != nil {
@@ -147,6 +148,7 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, cmd
 				}
 			}
+
 		case key.Matches(msg, m.keys.search):
 			selectedItem := m.list.SelectedItem()
 			if selectedItem != nil {
@@ -158,6 +160,7 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 			}
+
 		case key.Matches(msg, m.keys.execute):
 			var appsToRemove []providers.Application
 			for _, item := range m.list.Items() {
@@ -175,7 +178,8 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if len(appsToRemove) > 0 {
-				return newRemovalModel(appsToRemove), nil
+				rm := newRemovalModel(appsToRemove)
+				return rm, rm.Init()
 			}
 		}
 	}
@@ -192,6 +196,7 @@ func (m mainScreenModel) View() string {
 func newMainScreen() tea.Model {
 	listKeys := newListKeyMap()
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	l.Styles.Title = titleStyle
 	l.SetSpinner(spinner.Pulse)
 	l.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
