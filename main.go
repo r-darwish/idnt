@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/pterm/pterm"
+	"github.com/r-darwish/idnt/app"
 	"github.com/r-darwish/idnt/providers"
 	"sort"
 	"strings"
 )
 
 func main() {
+	app.Run()
+	return
+
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).Start("Collecting installed applications")
 	var providersList []providers.Provider
 
