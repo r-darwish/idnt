@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/r-darwish/idnt/providers"
@@ -59,42 +60,53 @@ type mainScreenModel struct {
 	keys *listKeyMap
 }
 
+type loading struct{}
+
 func (m mainScreenModel) Init() tea.Cmd {
-	return func() tea.Msg {
-		var providersList []providers.Provider
+	return tea.Batch(gatherApps, func() tea.Msg { return loading{} })
+}
 
-		providersList = append(providersList, providers.Powershell{})
-		// providersList = append(providersList, providers.GetOsSpecificProviders()...)
-		var allApps []list.Item
+func gatherApps() tea.Msg {
+	var providersList []providers.Provider
 
-		for _, provider := range providersList {
-			providerApps, err := provider.GetApplications()
-			if err != nil {
-				continue
-			}
-			for _, app := range providerApps {
-				allApps = append(allApps, &AppItem{app, false})
-			}
+	providersList = append(providersList, providers.Powershell{})
+	// providersList = append(providersList, providers.GetOsSpecificProviders()...)
+	var allApps []list.Item
+
+	for _, provider := range providersList {
+		providerApps, err := provider.GetApplications()
+		if err != nil {
+			continue
 		}
-
-		sort.Slice(allApps, func(i, j int) bool {
-			return strings.ToLower(allApps[i].(*AppItem).app.Name) > strings.ToLower(allApps[j].(*AppItem).app.Name)
-		})
-
-		return allApps
+		for _, app := range providerApps {
+			allApps = append(allApps, &AppItem{app, false})
+		}
 	}
+
+	sort.Slice(allApps, func(i, j int) bool {
+		return strings.ToLower(allApps[i].(*AppItem).app.Name) > strings.ToLower(allApps[j].(*AppItem).app.Name)
+	})
+
+	return allApps
 }
 
 func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case loading:
+		m.list.Title = "Gathering installed applications..."
+		cmd := m.list.StartSpinner()
+		return m, cmd
+
 	case tea.WindowSizeMsg:
 		topGap, rightGap, bottomGap, leftGap := appStyle.GetPadding()
 		m.list.SetSize(msg.Width-leftGap-rightGap, msg.Height-topGap-bottomGap)
 
 	case []list.Item:
 		m.done = true
-		cmd := m.list.SetItems(msg)
-		return m, cmd
+		setItems := m.list.SetItems(msg)
+		m.list.Title = "Select applications to uninstall"
+		m.list.StopSpinner()
+		return m, setItems
 
 	case tea.KeyMsg:
 		if m.list.FilterState() == list.Filtering {
@@ -103,12 +115,15 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch {
 		case key.Matches(msg, m.keys.selectItem):
-			item := m.list.SelectedItem().(*AppItem)
-			item.marked = !item.marked
+			selectedItem := m.list.SelectedItem()
+			if selectedItem != nil {
+				item := selectedItem.(*AppItem)
+				item.marked = !item.marked
 
-			index := m.list.Index()
-			if index < len(m.list.Items())-1 {
-				m.list.Select(index + 1)
+				index := m.list.Index()
+				if index < len(m.list.Items())-1 {
+					m.list.Select(index + 1)
+				}
 			}
 		}
 	}
@@ -119,17 +134,13 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainScreenModel) View() string {
-	if !m.done {
-		return appStyle.Render("Loading...")
-	} else {
-		return appStyle.Render(m.list.View())
-	}
+	return appStyle.Render(m.list.View())
 }
 
 func newMainScreen() tea.Model {
 	listKeys := newListKeyMap()
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
-	l.Title = "Select applications to uninstall"
+	l.SetSpinner(spinner.Pulse)
 	l.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.execute,
