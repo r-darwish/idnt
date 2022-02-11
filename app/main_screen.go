@@ -1,11 +1,13 @@
 package app
 
 import (
+	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/pkg/browser"
 	"github.com/r-darwish/idnt/providers"
 	"sort"
 	"strings"
@@ -18,6 +20,8 @@ var (
 type listKeyMap struct {
 	execute    key.Binding
 	selectItem key.Binding
+	gotoUrl    key.Binding
+	search     key.Binding
 }
 
 func newListKeyMap() *listKeyMap {
@@ -29,6 +33,14 @@ func newListKeyMap() *listKeyMap {
 		execute: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "uninstall selected apps"),
+		),
+		gotoUrl: key.NewBinding(
+			key.WithKeys("w"),
+			key.WithHelp("w", "go to the application website"),
+		),
+		search: key.NewBinding(
+			key.WithKeys("s"),
+			key.WithHelp("s", "search the application in DuckDuckGo"),
 		),
 	}
 }
@@ -51,7 +63,7 @@ func (a AppItem) Title() string {
 }
 
 func (a AppItem) Description() string {
-	return a.app.ExtraInfo["Description"]
+	return fmt.Sprintf("%s (%s)", a.app.ExtraInfo["Description"], a.app.Provider.GetName())
 }
 
 type mainScreenModel struct {
@@ -70,7 +82,7 @@ func gatherApps() tea.Msg {
 	var providersList []providers.Provider
 
 	providersList = append(providersList, providers.Powershell{})
-	// providersList = append(providersList, providers.GetOsSpecificProviders()...)
+	providersList = append(providersList, providers.GetOsSpecificProviders()...)
 	var allApps []list.Item
 
 	for _, provider := range providersList {
@@ -84,7 +96,7 @@ func gatherApps() tea.Msg {
 	}
 
 	sort.Slice(allApps, func(i, j int) bool {
-		return strings.ToLower(allApps[i].(*AppItem).app.Name) > strings.ToLower(allApps[j].(*AppItem).app.Name)
+		return strings.ToLower(allApps[i].(*AppItem).app.Name) < strings.ToLower(allApps[j].(*AppItem).app.Name)
 	})
 
 	return allApps
@@ -104,7 +116,7 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case []list.Item:
 		m.done = true
 		setItems := m.list.SetItems(msg)
-		m.list.Title = "Select applications to uninstall"
+		m.list.Title = "Select applications to uninstall:"
 		m.list.StopSpinner()
 		return m, setItems
 
@@ -124,6 +136,32 @@ func (m mainScreenModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if index < len(m.list.Items())-1 {
 					m.list.Select(index + 1)
 				}
+			}
+		case key.Matches(msg, m.keys.gotoUrl):
+			selectedItem := m.list.SelectedItem()
+			if selectedItem != nil {
+				item := selectedItem.(*AppItem)
+				if url, ok := item.app.ExtraInfo["URL"]; ok {
+					err := browser.OpenURL(url)
+					if err != nil {
+						cmd := m.list.NewStatusMessage(fmt.Sprintf("Error opening a browser: %v", err))
+						return m, cmd
+					}
+				} else {
+					cmd := m.list.NewStatusMessage("This application does not have a URL")
+					return m, cmd
+				}
+			}
+		case key.Matches(msg, m.keys.search):
+			selectedItem := m.list.SelectedItem()
+			if selectedItem != nil {
+				item := selectedItem.(*AppItem)
+				err := browser.OpenURL(fmt.Sprintf("https://duckduckgo.com/?q=%s", item.app.Name))
+				if err != nil {
+					cmd := m.list.NewStatusMessage(fmt.Sprintf("Error opening a browser: %v", err))
+					return m, cmd
+				}
+
 			}
 		}
 	}

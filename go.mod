@@ -6,8 +6,10 @@ require (
 	github.com/aaronjan/hunch v1.1.2
 	github.com/charmbracelet/bubbles v0.10.2
 	github.com/charmbracelet/bubbletea v0.19.3
+	github.com/charmbracelet/lipgloss v0.4.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/ktr0731/go-fuzzyfinder v0.5.0
+	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
 	github.com/pterm/pterm v0.12.33
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
@@ -17,7 +19,6 @@ require (
 require (
 	github.com/atomicgo/cursor v0.0.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/charmbracelet/lipgloss v0.4.0 // indirect
 	github.com/containerd/console v1.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
