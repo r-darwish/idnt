@@ -22,4 +22,8 @@ func Run() {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
+
+	if removalError {
+		os.Exit(1)
+	}
 }
