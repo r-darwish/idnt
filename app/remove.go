@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/r-darwish/idnt/providers"
 	"strings"
-	"time"
 )
 
 var (
@@ -113,9 +112,9 @@ func (r removeModel) removeNextApp() tea.Msg {
 	if r.nextApp >= len(r.appsToRemove) {
 		return doneRemoving{}
 	}
-	//app := r.appsToRemove[r.nextApp]
-	time.Sleep(3 * time.Second)
-	return appRemoved{success: false}
+	app := r.appsToRemove[r.nextApp]
+	err := app.app.Provider.RemoveApplication(&app.app)
+	return appRemoved{success: err == nil}
 }
 
 func newRemovalModel(appsForRemoval []providers.Application) tea.Model {
